@@ -1,0 +1,16 @@
+meta {
+  name: mock data
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/test/mock-data
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
