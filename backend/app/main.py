@@ -1,37 +1,50 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
-from app.routers import book
-from app.utils.seeder import seed_books_from_json
-#from app import models
-#from app.configs.database import engine
+from app.routers import test_mock, scheduler
+from app.services.scheduler import scheduler_service
 
-#models.Base.metadata.create_all(bind=engine)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    scheduler_service.start()
+    yield
+    # Shutdown
+    scheduler_service.stop()
 
-app = FastAPI()
+app = FastAPI(
+    title="DEMETRA AI Analytics API",
+    description="AI-powered advertising analytics dashboard",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
-origins = ["*"]
-
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-app.include_router(book.router)
-
-# Call the seeding function when the application starts
-@app.on_event("startup")
-async def startup():
-    seed_books_from_json()  # Populate the database with books
+# Include routers
+app.include_router(test_mock.router)
+app.include_router(scheduler.router)
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello World"}
+    return {
+        "message": "DEMETRA AI Analytics API",
+        "version": "1.0.0",
+        "status": "running"
+    }
 
-@app.get("/test/recommends/{prompt}")
-def recommend_books_test(prompt: str):
-    return {"message": prompt}
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
+
+@app.get("/api/test-simple")
+def test_simple():
+    return {"message": "API is working!", "timestamp": "2025-11-22T02:24:00"}
