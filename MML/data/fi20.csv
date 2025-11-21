@@ -1,0 +1,21 @@
+Campaign_ID,Target_Audience,Campaign_Goal,Duration,Channel_Used,Conversion_Rate,Acquisition_Cost,ROI,Location,Language,Clicks,Impressions,Engagement_Score,Customer_Segment,Date,Duration_days
+529013,Men 35-44,Product Launch,15 Days,Instagram,0.15,500.0,5.79,Las Vegas,Spanish,500,3000,7,Health,2022-02-25,15.0
+275352,Women 45-60,Market Expansion,15 Days,Facebook,0.01,500.0,7.21,Los Angeles,French,500,3000,5,Home,2022-05-12,15.0
+692322,Men 45-60,Product Launch,15 Days,Instagram,0.08,500.0,0.43,Austin,Spanish,500,3000,9,Technology,2022-06-19,15.0
+675757,Men 25-34,Increase Sales,15 Days,Pinterest,0.03,500.0,0.9098235720808122,Miami,Spanish,293,1937,1,Health,2022-09-08,15.0
+535900,Men 45-60,Market Expansion,15 Days,Pinterest,0.13,500.0,1.4228282188140011,Austin,French,293,1937,1,Home,2022-08-24,15.0
+323031,Women 35-44,Product Launch,15 Days,Facebook,0.02,500.0,6.9,Austin,Spanish,500,3001,10,Technology,2022-01-15,15.0
+727501,All Ages,Increase Sales,15 Days,Pinterest,0.1,500.0,0.6792396019463823,Los Angeles,French,293,1938,1,Home,2022-10-30,15.0
+289553,Men 25-34,Product Launch,15 Days,Pinterest,0.1,500.0,1.0099220397360686,Miami,English,293,1938,1,Food,2022-07-23,15.0
+942511,Men 35-44,Market Expansion,15 Days,Twitter,0.14,500.0,1.19,Los Angeles,French,501,3003,8,Food,2022-08-14,15.0
+255854,Women 45-60,Increase Sales,15 Days,Facebook,0.04,500.0,1.65,Miami,English,501,3003,9,Food,2022-03-23,15.0
+204863,Men 45-60,Market Expansion,15 Days,Instagram,0.08,500.0,2.81,Las Vegas,English,501,3003,8,Technology,2022-08-24,15.0
+147351,Women 25-34,Increase Sales,15 Days,Twitter,0.05,500.0,5.02,Austin,Spanish,501,3004,8,Fashion,2022-09-25,15.0
+320183,All Ages,Product Launch,15 Days,Pinterest,0.04,500.0,0.1286980298424724,Miami,Spanish,294,1939,1,Home,2022-03-05,15.0
+998847,Men 18-24,Increase Sales,15 Days,Instagram,0.09,500.0,0.94,Las Vegas,Spanish,501,3005,8,Technology,2022-06-11,15.0
+174406,Women 25-34,Product Launch,15 Days,Facebook,0.13,500.0,0.89,Austin,English,501,3005,6,Health,2022-12-26,15.0
+584909,Women 25-34,Increase Sales,15 Days,Instagram,0.06,500.0,7.32,New York,Spanish,501,3005,4,Food,2022-04-21,15.0
+414326,Women 18-24,Market Expansion,15 Days,Twitter,0.03,500.0,4.08,Los Angeles,English,502,3006,10,Health,2022-01-08,15.0
+854283,Men 25-34,Market Expansion,15 Days,Facebook,0.05,500.0,2.16,Miami,French,502,3006,8,Technology,2022-08-20,15.0
+372311,Men 18-24,Product Launch,15 Days,Twitter,0.02,500.0,6.82,New York,French,502,3007,9,Home,2022-04-23,15.0
+687141,Men 25-34,Brand Awareness,15 Days,Twitter,0.04,500.0,5.26,Miami,French,502,3007,10,Health,2022-08-29,15.0
