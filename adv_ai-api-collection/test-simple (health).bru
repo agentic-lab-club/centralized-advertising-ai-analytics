@@ -1,11 +1,11 @@
 meta {
-  name: sync data
+  name: test-simple (health)
   type: http
-  seq: 5
+  seq: 2
 }
 
-post {
-  url: {{base_url}}/api/test/sync-now
+get {
+  url: {{base_url}}/api/test-simple
   body: none
   auth: inherit
 }

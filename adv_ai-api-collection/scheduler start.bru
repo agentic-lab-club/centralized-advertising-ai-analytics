@@ -1,11 +1,11 @@
 meta {
-  name: sync data
+  name: scheduler start
   type: http
-  seq: 5
+  seq: 8
 }
 
 post {
-  url: {{base_url}}/api/test/sync-now
+  url: {{base_url}}/api/scheduler/start
   body: none
   auth: inherit
 }
