@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers.recommendations import router as recommendations_router
+from app.routers.test_mock import router as test_mock_router
 import os
 import logging
 
@@ -25,6 +26,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(recommendations_router)
+app.include_router(test_mock_router)
 
 @app.get("/")
 def read_root():
@@ -32,12 +34,14 @@ def read_root():
         "message": "DEMETRA AI Analytics API",
         "version": "2.0.0",
         "status": "running",
-        "features": "recommendations enabled",
+        "features": "recommendations + mock data enabled",
         "endpoints": [
             "GET /api/recommendations/analytics - AI recommendations",
             "GET /api/recommendations/channels - Channel performance",
             "GET /api/recommendations/budget - Budget allocation",
-            "POST /api/recommendations/custom - Custom recommendations"
+            "POST /api/recommendations/custom - Custom recommendations",
+            "GET /api/test/mock-data - Mock campaign data",
+            "POST /api/test/mock-all - All mock data"
         ]
     }
 
@@ -45,7 +49,7 @@ def read_root():
 def health_check():
     return {
         "status": "healthy",
-        "timestamp": "2025-11-22T10:24:39"
+        "timestamp": "2025-11-22T10:56:52"
     }
 
 @app.get("/api/test")

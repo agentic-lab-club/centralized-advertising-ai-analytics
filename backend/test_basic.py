@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test Basic API with Recommendations
+Test API with Recommendations and Mock Data
 """
 
 import requests
@@ -27,8 +27,8 @@ def test_endpoint(endpoint, method="GET", data=None):
         print(f"  ❌ Exception: {str(e)}")
 
 def main():
-    print("🔧 TESTING API WITH RECOMMENDATIONS")
-    print("=" * 40)
+    print("🔧 TESTING API WITH RECOMMENDATIONS & MOCK DATA")
+    print("=" * 50)
     
     # Basic endpoints
     print("\n1. Basic Endpoints:")
@@ -36,14 +36,19 @@ def main():
     test_endpoint("/health")
     test_endpoint("/api/test")
     
+    # Mock data endpoints
+    print("\n2. Mock Data Endpoints:")
+    test_endpoint("/api/test/mock-data")
+    test_endpoint("/api/test/mock-all", "POST")
+    
     # Recommendations endpoints
-    print("\n2. Recommendations Endpoints:")
+    print("\n3. Recommendations Endpoints:")
     test_endpoint("/api/recommendations/analytics")
     test_endpoint("/api/recommendations/channels")
     test_endpoint("/api/recommendations/budget")
     
     # Custom recommendations
-    print("\n3. Custom Recommendations:")
+    print("\n4. Custom Recommendations:")
     custom_data = {
         "budget": 100000,
         "channels": ["Facebook", "Instagram"],
@@ -51,7 +56,7 @@ def main():
     }
     test_endpoint("/api/recommendations/custom", "POST", custom_data)
     
-    print("\n✅ RECOMMENDATIONS API TEST COMPLETE!")
+    print("\n✅ COMPLETE API TEST FINISHED!")
 
 if __name__ == "__main__":
     main()
