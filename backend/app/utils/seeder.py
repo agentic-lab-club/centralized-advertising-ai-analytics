@@ -228,3 +228,17 @@ def seed_all():
 
 if __name__ == "__main__":
     seed_all()
+def seed_ml_dashboard_data(db: Session):
+    """Seed ML dashboard data"""
+    try:
+        from app.services.ml_sync_service import MLSyncService
+        
+        print("🤖 Generating ML dashboard data...")
+        
+        # Run ML sync to generate initial data
+        ml_sync = MLSyncService(db)
+        ml_sync.run_all()
+        
+        print("✅ ML dashboard data generated!")
+    except Exception as e:
+        print(f"⚠️ ML dashboard generation skipped: {e}")

@@ -1,23 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
+from app.routers.recommendations import router as recommendations_router
+import os
+import logging
 
-from app.routers import test_mock, scheduler
-from app.services.scheduler import scheduler_service
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup
-    scheduler_service.start()
-    yield
-    # Shutdown
-    scheduler_service.stop()
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="DEMETRA AI Analytics API",
     description="AI-powered advertising analytics dashboard",
-    version="1.0.0",
-    lifespan=lifespan
+    version="2.0.0"
 )
 
 # CORS middleware
@@ -30,21 +24,33 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(test_mock.router)
-app.include_router(scheduler.router)
+app.include_router(recommendations_router)
 
 @app.get("/")
 def read_root():
     return {
         "message": "DEMETRA AI Analytics API",
-        "version": "1.0.0",
-        "status": "running"
+        "version": "2.0.0",
+        "status": "running",
+        "features": "recommendations enabled",
+        "endpoints": [
+            "GET /api/recommendations/analytics - AI recommendations",
+            "GET /api/recommendations/channels - Channel performance",
+            "GET /api/recommendations/budget - Budget allocation",
+            "POST /api/recommendations/custom - Custom recommendations"
+        ]
     }
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy"}
+    return {
+        "status": "healthy",
+        "timestamp": "2025-11-22T10:24:39"
+    }
 
-@app.get("/api/test-simple")
+@app.get("/api/test")
 def test_simple():
-    return {"message": "API is working!", "timestamp": "2025-11-22T02:24:00"}
+    return {
+        "message": "DEMETRA API is working!", 
+        "status": "ok"
+    }

@@ -16,7 +16,7 @@ class SchedulerService:
     def start(self):
         """Start the scheduler"""
         if not self.scheduler.running:
-            # Add hourly sync job
+            # Add hourly campaign sync job
             self.scheduler.add_job(
                 func=self._sync_campaigns_job,
                 trigger=CronTrigger(minute=0),  # Every hour at minute 0
