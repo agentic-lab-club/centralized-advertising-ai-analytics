@@ -1,0 +1,24 @@
+meta {
+  name: Custom Recommendations
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/recommendations/custom
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "budget": 100000,
+    "channels": ["Facebook", "Instagram", "Twitter"],
+    "goal": "maximize_roi",
+    "current_performance": {
+      "Facebook": {"roi": 3.2, "cost": 7500},
+      "Instagram": {"roi": 4.0, "cost": 7200},
+      "Twitter": {"roi": 3.8, "cost": 7800}
+    }
+  }
+}

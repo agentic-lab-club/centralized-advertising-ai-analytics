@@ -1,16 +1,15 @@
 meta {
-  name: mock data
+  name: mock-all
   type: http
-  seq: 3
+  seq: 1
 }
 
 get {
-  url: {{base_url}}/api/test/mock-data
+  url: {{baseUrl}}/api/test/mock-all
   body: none
   auth: inherit
 }
 
 settings {
   encodeUrl: true
-  timeout: 0
 }

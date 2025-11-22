@@ -1,11 +1,11 @@
 meta {
-  name: sync data
+  name: mock-data
   type: http
-  seq: 5
+  seq: 2
 }
 
-post {
-  url: {{base_url}}/api/test/sync-now
+get {
+  url: {{baseUrl}}/api/test/mock-all
   body: none
   auth: inherit
 }
