@@ -2093,3 +2093,1223 @@ apscheduler = "^3.10.4"
 
 Это минимально необходимый backend для MVP. Все готово к интеграции с вашими ML и LLM моделями! Нужна помощь с конкретной частью?
 
+---
+
+# 🎯 MINIMAL MVP BACKEND - 6 HOURS LEFT
+
+## ✅ Postgres is PERFECT for MVP
+
+- **YES, use Postgres** - structured data, ACID compliance, easy queries
+- NoSQL adds complexity you DON'T need for hackathon
+- Your data is relational (campaigns → predictions) = Postgres wins
+
+
+## ✅ APScheduler is PERFECT
+
+- **NO Celery needed** - APScheduler is simpler, faster setup
+- Celery = overkill for hourly tasks
+- APScheduler = 5 lines of code, works instantly
+
+***
+
+# 📋 EXACT IMPLEMENTATION STEPS (6 HOURS)
+
+## **HOUR 1: Database Setup**
+
+### Step 1: Create Models (`app/models/`)
+
+**`campaign.py`:**
+
+```python
+from sqlalchemy import Column, Integer, String, Float, DateTime, Date
+from sqlalchemy.sql import func
+from app.configs.database import Base
+
+class Campaign(Base):
+    __tablename__ = "campaigns"
+    id = Column(Integer, primary_key=True)
+    campaign_id = Column(String(50), unique=True, index=True)
+    channel = Column(String(50), index=True)  # facebook, instagram, google_ads, tiktok
+    conversion_rate = Column(Float)
+    cost = Column(Float)
+    roi = Column(Float)
+    clicks = Column(Integer)
+    impressions = Column(Integer)
+    engagement = Column(Integer)
+    date = Column(Date)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+```
+
+**`prediction.py`:**
+
+```python
+from sqlalchemy import Column, Integer, String, Float, DateTime
+from sqlalchemy.sql import func
+from app.configs.database import Base
+
+class Prediction(Base):
+    __tablename__ = "predictions"
+    id = Column(Integer, primary_key=True)
+    campaign_id = Column(String(50))
+    predicted_roi = Column(Float)
+    risk_level = Column(String(20))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+```
+
+**`recommendation.py`:**
+
+```python
+from sqlalchemy import Column, Integer, Text, DateTime
+from sqlalchemy.sql import func
+from sqlalchemy.dialects.postgresql import JSONB
+from app.configs.database import Base
+
+class Recommendation(Base):
+    __tablename__ = "recommendations"
+    id = Column(Integer, primary_key=True)
+    recommendations = Column(JSONB)
+    summary = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+```
+
+**`ml_dashboard.py`:**
+
+```python
+from sqlalchemy import Column, Integer, String, DateTime, LargeBinary
+from sqlalchemy.sql import func
+from app.configs.database import Base
+
+class MLDashboard(Base):
+    __tablename__ = "ml_dashboards"
+    id = Column(Integer, primary_key=True)
+    dashboard_type = Column(String(50))  # 'roi_analysis', 'channel_comparison'
+    image_data = Column(LargeBinary)  # PNG bytes
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+```
+
+
+### Step 2: Alembic Migration
+
+```bash
+# In backend folder
+poetry add alembic
+
+# Initialize alembic
+alembic init alembic
+
+# Edit alembic.ini - set sqlalchemy.url to your postgres connection
+# sqlalchemy.url = postgresql://user:password@localhost:5432/demetra_db
+
+# Edit alembic/env.py - add these lines
+from app.configs.database import Base
+from app.models.campaign import Campaign
+from app.models.prediction import Prediction
+from app.models.recommendation import Recommendation
+from app.models.ml_dashboard import MLDashboard
+
+target_metadata = Base.metadata
+
+# Create migration
+alembic revision --autogenerate -m "initial tables"
+
+# Apply migration
+alembic upgrade head
+```
+
+
+***
+
+## **HOUR 2: Mock API Endpoints (Faker)**
+
+### Step 3: Create Mock API Service (`app/services/mock_api.py`)
+
+```python
+from faker import Faker
+import random
+from datetime import datetime, timedelta
+from typing import List, Dict
+
+fake = Faker()
+
+class MockAPIService:
+    """Simulates real API responses from ad platforms"""
+    
+    CHANNELS = ['facebook', 'instagram', 'google_ads', 'tiktok']
+    
+    @staticmethod
+    def fetch_facebook_ads() -> List[Dict]:
+        """Mock Facebook Ads API response"""
+        campaigns = []
+        for _ in range(random.randint(3, 8)):
+            campaigns.append({
+                'campaign_id': f'FB_{fake.uuid4()[:8]}',
+                'channel': 'facebook',
+                'conversion_rate': round(random.uniform(0.01, 0.20), 3),
+                'cost': round(random.uniform(100, 800), 2),
+                'roi': round(random.uniform(0.5, 8.0), 2),
+                'clicks': random.randint(100, 5000),
+                'impressions': random.randint(1000, 50000),
+                'engagement': random.randint(50, 1000),
+                'date': (datetime.now() - timedelta(days=random.randint(0, 7))).date()
+            })
+        return campaigns
+    
+    @staticmethod
+    def fetch_instagram_ads() -> List[Dict]:
+        """Mock Instagram Ads API response"""
+        campaigns = []
+        for _ in range(random.randint(3, 8)):
+            campaigns.append({
+                'campaign_id': f'IG_{fake.uuid4()[:8]}',
+                'channel': 'instagram',
+                'conversion_rate': round(random.uniform(0.01, 0.20), 3),
+                'cost': round(random.uniform(100, 800), 2),
+                'roi': round(random.uniform(0.5, 8.0), 2),
+                'clicks': random.randint(100, 5000),
+                'impressions': random.randint(1000, 50000),
+                'engagement': random.randint(50, 1000),
+                'date': (datetime.now() - timedelta(days=random.randint(0, 7))).date()
+            })
+        return campaigns
+    
+    @staticmethod
+    def fetch_google_ads() -> List[Dict]:
+        """Mock Google Ads API response"""
+        campaigns = []
+        for _ in range(random.randint(3, 8)):
+            campaigns.append({
+                'campaign_id': f'GA_{fake.uuid4()[:8]}',
+                'channel': 'google_ads',
+                'conversion_rate': round(random.uniform(0.01, 0.20), 3),
+                'cost': round(random.uniform(100, 800), 2),
+                'roi': round(random.uniform(0.5, 8.0), 2),
+                'clicks': random.randint(100, 5000),
+                'impressions': random.randint(1000, 50000),
+                'engagement': random.randint(50, 1000),
+                'date': (datetime.now() - timedelta(days=random.randint(0, 7))).date()
+            })
+        return campaigns
+    
+    @staticmethod
+    def fetch_tiktok_ads() -> List[Dict]:
+        """Mock TikTok Ads API response"""
+        campaigns = []
+        for _ in range(random.randint(3, 8)):
+            campaigns.append({
+                'campaign_id': f'TT_{fake.uuid4()[:8]}',
+                'channel': 'tiktok',
+                'conversion_rate': round(random.uniform(0.01, 0.20), 3),
+                'cost': round(random.uniform(100, 800), 2),
+                'roi': round(random.uniform(0.5, 8.0), 2),
+                'clicks': random.randint(100, 5000),
+                'impressions': random.randint(1000, 50000),
+                'engagement': random.randint(50, 1000),
+                'date': (datetime.now() - timedelta(days=random.randint(0, 7))).date()
+            })
+        return campaigns
+    
+    @classmethod
+    def fetch_all_channels(cls) -> List[Dict]:
+        """Fetch data from all channels"""
+        all_campaigns = []
+        all_campaigns.extend(cls.fetch_facebook_ads())
+        all_campaigns.extend(cls.fetch_instagram_ads())
+        all_campaigns.extend(cls.fetch_google_ads())
+        all_campaigns.extend(cls.fetch_tiktok_ads())
+        return all_campaigns
+```
+
+
+### Step 4: Data Sync Service (`app/services/sync_service.py`)
+
+```python
+from sqlalchemy.orm import Session
+from app.models.campaign import Campaign
+from app.services.mock_api import MockAPIService
+from typing import List, Dict
+
+class SyncService:
+    """Syncs data from mock APIs to database"""
+    
+    @staticmethod
+    def sync_campaigns(db: Session) -> int:
+        """Fetch from mock APIs and save to DB"""
+        # Fetch from all channels
+        campaigns_data = MockAPIService.fetch_all_channels()
+        
+        count = 0
+        for data in campaigns_data:
+            # Check if campaign already exists
+            existing = db.query(Campaign).filter(
+                Campaign.campaign_id == data['campaign_id']
+            ).first()
+            
+            if not existing:
+                # Create new campaign
+                campaign = Campaign(**data)
+                db.add(campaign)
+                count += 1
+        
+        db.commit()
+        return count
+```
+
+
+***
+
+## **HOUR 3: ML Dashboard Generation**
+
+### Step 5: ML Dashboard Service (`app/services/ml_dashboard_service.py`)
+
+```python
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from io import BytesIO
+from sqlalchemy.orm import Session
+from app.models.campaign import Campaign
+from app.models.ml_dashboard import MLDashboard
+
+class MLDashboardService:
+    
+    @staticmethod
+    def generate_roi_chart(db: Session) -> bytes:
+        """Generate ROI comparison chart"""
+        campaigns = db.query(Campaign).all()
+        df = pd.DataFrame([{
+            'channel': c.channel,
+            'roi': c.roi,
+            'clicks': c.clicks,
+            'cost': c.cost
+        } for c in campaigns])
+        
+        plt.figure(figsize=(10, 6))
+        sns.barplot(data=df, x='channel', y='roi', estimator='mean')
+        plt.title('Average ROI by Channel')
+        plt.xlabel('Channel')
+        plt.ylabel('ROI')
+        
+        # Save to bytes
+        buf = BytesIO()
+        plt.savefig(buf, format='png', dpi=150, bbox_inches='tight')
+        plt.close()
+        buf.seek(0)
+        return buf.read()
+    
+    @staticmethod
+    def generate_conversion_chart(db: Session) -> bytes:
+        """Generate conversion rate chart"""
+        campaigns = db.query(Campaign).all()
+        df = pd.DataFrame([{
+            'channel': c.channel,
+            'conversion_rate': c.conversion_rate
+        } for c in campaigns])
+        
+        plt.figure(figsize=(10, 6))
+        sns.boxplot(data=df, x='channel', y='conversion_rate')
+        plt.title('Conversion Rate by Channel')
+        plt.xlabel('Channel')
+        plt.ylabel('Conversion Rate')
+        
+        buf = BytesIO()
+        plt.savefig(buf, format='png', dpi=150, bbox_inches='tight')
+        plt.close()
+        buf.seek(0)
+        return buf.read()
+    
+    @staticmethod
+    def save_dashboards(db: Session):
+        """Generate and save all dashboard charts"""
+        # ROI Chart
+        roi_img = MLDashboardService.generate_roi_chart(db)
+        roi_dashboard = MLDashboard(
+            dashboard_type='roi_analysis',
+            image_data=roi_img
+        )
+        db.add(roi_dashboard)
+        
+        # Conversion Chart
+        conv_img = MLDashboardService.generate_conversion_chart(db)
+        conv_dashboard = MLDashboard(
+            dashboard_type='conversion_analysis',
+            image_data=conv_img
+        )
+        db.add(conv_dashboard)
+        
+        db.commit()
+```
+
+
+***
+
+## **HOUR 4: Scheduler + Routers**
+
+### Step 6: Scheduler (`app/scheduler/tasks.py`)
+
+```python
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+from app.configs.database import SessionLocal
+from app.services.sync_service import SyncService
+from app.services.ml_dashboard_service import MLDashboardService
+from app.services.ml_service import MLService
+from app.services.llm_service import LLMService
+import logging
+
+logger = logging.getLogger(__name__)
+
+def hourly_sync():
+    """Runs every hour"""
+    logger.info("Starting hourly sync...")
+    db = SessionLocal()
+    
+    try:
+        # 1. Sync campaigns from mock APIs
+        count = SyncService.sync_campaigns(db)
+        logger.info(f"Synced {count} new campaigns")
+        
+        # 2. Generate ML predictions
+        ml_service = MLService()
+        campaigns = db.query(Campaign).limit(50).all()
+        for campaign in campaigns:
+            prediction = ml_service.predict_roi({
+                'campaign_id': campaign.campaign_id,
+                'clicks': campaign.clicks,
+                'impressions': campaign.impressions,
+                'engagement': campaign.engagement,
+                'roi': campaign.roi
+            })
+            db.add(Prediction(**prediction))
+        db.commit()
+        logger.info("ML predictions generated")
+        
+        # 3. Generate LLM recommendations
+        llm_service = LLMService()
+        analytics = get_analytics_summary(db)
+        recommendations = llm_service.generate_recommendations(analytics)
+        db.add(Recommendation(**recommendations))
+        db.commit()
+        logger.info("LLM recommendations generated")
+        
+        # 4. Generate ML dashboards (Seaborn charts)
+        MLDashboardService.save_dashboards(db)
+        logger.info("ML dashboards generated")
+        
+    except Exception as e:
+        logger.error(f"Error: {e}")
+    finally:
+        db.close()
+
+def start_scheduler():
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(
+        hourly_sync,
+        trigger=IntervalTrigger(hours=1),
+        id='hourly_sync',
+        replace_existing=True
+    )
+    scheduler.add_job(hourly_sync, id='startup')  # Run immediately
+    scheduler.start()
+    logger.info("Scheduler started")
+```
+
+
+### Step 7: API Routers
+
+**`app/routers/campaigns.py`:**
+
+```python
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from app.configs.database import get_db
+from app.models.campaign import Campaign
+
+router = APIRouter(prefix="/api/campaigns", tags=["campaigns"])
+
+@router.get("/")
+def get_campaigns(db: Session = Depends(get_db)):
+    return db.query(Campaign).order_by(Campaign.created_at.desc()).limit(100).all()
+
+@router.get("/channels")
+def get_by_channel(db: Session = Depends(get_db)):
+    from sqlalchemy import func
+    stats = db.query(
+        Campaign.channel,
+        func.count(Campaign.id).label('count'),
+        func.avg(Campaign.roi).label('avg_roi'),
+        func.avg(Campaign.conversion_rate).label('avg_conv')
+    ).group_by(Campaign.channel).all()
+    
+    return [{'channel': s[0], 'count': s[1], 'avg_roi': float(s[2]), 'avg_conversion': float(s[3])} for s in stats]
+```
+
+**`app/routers/dashboards.py`:**
+
+```python
+from fastapi import APIRouter, Depends, Response
+from sqlalchemy.orm import Session
+from app.configs.database import get_db
+from app.models.ml_dashboard import MLDashboard
+
+router = APIRouter(prefix="/api/dashboards", tags=["dashboards"])
+
+@router.get("/roi-chart")
+def get_roi_chart(db: Session = Depends(get_db)):
+    """Returns PNG image of ROI chart"""
+    dashboard = db.query(MLDashboard).filter(
+        MLDashboard.dashboard_type == 'roi_analysis'
+    ).order_by(MLDashboard.created_at.desc()).first()
+    
+    if dashboard:
+        return Response(content=dashboard.image_data, media_type="image/png")
+    return {"error": "No dashboard found"}
+
+@router.get("/conversion-chart")
+def get_conversion_chart(db: Session = Depends(get_db)):
+    """Returns PNG image of conversion chart"""
+    dashboard = db.query(MLDashboard).filter(
+        MLDashboard.dashboard_type == 'conversion_analysis'
+    ).order_by(MLDashboard.created_at.desc()).first()
+    
+    if dashboard:
+        return Response(content=dashboard.image_data, media_type="image/png")
+    return {"error": "No dashboard found"}
+```
+
+**`app/routers/recommendations.py`:**
+
+```python
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from app.configs.database import get_db
+from app.models.recommendation import Recommendation
+
+router = APIRouter(prefix="/api/recommendations", tags=["recommendations"])
+
+@router.get("/latest")
+def get_latest(db: Session = Depends(get_db)):
+    rec = db.query(Recommendation).order_by(Recommendation.created_at.desc()).first()
+    return rec if rec else {"message": "No recommendations yet"}
+```
+
+
+### Step 8: Update `main.py`
+
+```python
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.configs.database import engine, Base
+from app.routers import campaigns, dashboards, recommendations
+from app.scheduler.tasks import start_scheduler
+
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="DEMETRA AI Analytics API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(campaigns.router)
+app.include_router(dashboards.router)
+app.include_router(recommendations.router)
+
+@app.on_event("startup")
+def startup():
+    start_scheduler()
+
+@app.get("/")
+def root():
+    return {"message": "DEMETRA AI Analytics API", "status": "running"}
+```
+
+
+***
+
+## **HOUR 5-6: Frontend (SIMPLEST)**
+
+### Simple Frontend with Polling
+
+**`frontend/src/App.js`:**
+
+```jsx
+import React, { useEffect, useState } from 'react';
+import './App.css';
+
+const API_URL = 'http://localhost:8000/api';
+
+function App() {
+  const [channels, setChannels] = useState([]);
+  const [roiChart, setRoiChart] = useState('');
+  const [convChart, setConvChart] = useState('');
+  const [recommendations, setRecommendations] = useState(null);
+
+  const fetchData = async () => {
+    try {
+      // Fetch channel stats
+      const channelsRes = await fetch(`${API_URL}/campaigns/channels`);
+      setChannels(await channelsRes.json());
+
+      // Fetch dashboard images
+      setRoiChart(`${API_URL}/dashboards/roi-chart?t=${Date.now()}`);
+      setConvChart(`${API_URL}/dashboards/conversion-chart?t=${Date.now()}`);
+
+      // Fetch recommendations
+      const recRes = await fetch(`${API_URL}/recommendations/latest`);
+      setRecommendations(await recRes.json());
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    // Poll every 30 seconds
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="App">
+      <header>
+        <h1>DEMETRA SYSTEMS - AI Analytics Dashboard</h1>
+      </header>
+
+      <section className="stats">
+        <h2>Channel Performance</h2>
+        <div className="channel-grid">
+          {channels.map(ch => (
+            <div key={ch.channel} className="card">
+              <h3>{ch.channel}</h3>
+              <p>Campaigns: {ch.count}</p>
+              <p>Avg ROI: {ch.avg_roi.toFixed(2)}</p>
+              <p>Avg Conversion: {(ch.avg_conversion * 100).toFixed(2)}%</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="charts">
+        <h2>ML Analytics</h2>
+        <div className="chart-grid">
+          <div>
+            <h3>ROI by Channel</h3>
+            {roiChart && <img src={roiChart} alt="ROI Chart" />}
+          </div>
+          <div>
+            <h3>Conversion Rates</h3>
+            {convChart && <img src={convChart} alt="Conversion Chart" />}
+          </div>
+        </div>
+      </section>
+
+      <section className="recommendations">
+        <h2>AI Recommendations</h2>
+        {recommendations && (
+          <div className="rec-box">
+            <p><strong>Summary:</strong> {recommendations.summary}</p>
+            <pre>{JSON.stringify(recommendations.recommendations, null, 2)}</pre>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+export default App;
+```
+
+**`frontend/src/App.css`:**
+
+```css
+.App {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+header {
+  background: #1a73e8;
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.channel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.card {
+  background: #f5f5f5;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.chart-grid img {
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.rec-box {
+  background: #e8f5e9;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid #4caf50;
+}
+
+pre {
+  background: #f5f5f5;
+  padding: 10px;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+```
+
+
+***
+
+## 📦 Dependencies (`pyproject.toml`)
+
+```toml
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.104.0"
+uvicorn = {extras = ["standard"], version = "^0.24.0"}
+sqlalchemy = "^2.0.0"
+psycopg2-binary = "^2.9.9"
+alembic = "^1.12.0"
+faker = "^20.0.0"
+pandas = "^2.1.0"
+numpy = "^1.26.0"
+seaborn = "^0.13.0"
+matplotlib = "^3.8.0"
+requests = "^2.31.0"
+apscheduler = "^3.10.4"
+python-dotenv = "^1.0.0"
+```
+
+
+***
+
+## 🚀 EXECUTION ORDER (6 HOURS)
+
+```bash
+# HOUR 1
+cd backend
+poetry install
+alembic revision --autogenerate -m "initial"
+alembic upgrade head
+
+# HOUR 2-3
+# Create all services (mock_api.py, sync_service.py, ml_dashboard_service.py)
+# Create all routers
+# Update main.py
+
+# HOUR 4
+# Test scheduler
+python -m uvicorn app.main:app --reload
+
+# HOUR 5-6
+cd ../frontend
+npm install
+npm start
+```
+
+
+***
+
+## ✅ MINIMAL CHECKLIST
+
+- [x] Postgres with 4 tables
+- [x] Mock API (Faker) for 4 channels
+- [x] Hourly sync (APScheduler)
+- [x] ML dashboard generation (Seaborn PNG)
+- [x] LLM recommendations
+- [x] Simple frontend with polling
+- [x] NO ALERTS
+- [x] NO PDF
+- [x] NO Celery
+
+**THIS IS THE ABSOLUTE MINIMUM FOR 6 HOURS. GOOD LUCK! 🚀**
+
+---
+
+# 🔥 ENHANCED SYSTEM: ML Dashboards \& Prediction Tables Integration
+
+## ✨ Your goals and requirements:
+
+1. **Backend endpoint:**
+    - Takes ML predictions (tables/charts from ml_presentable.ipynb).
+    - Outputs Seaborn chart PNGs for frontend (by dashboard: ROI, conversion/time, reach/time, etc.)
+2. **Database:**
+    - 4 tables: One for each ML dashboard prediction output (store forecasts/statistics for each type).
+3. **Scheduler:**
+    - Polling/sync **every 30 min** (APScheduler).
+    - Ability to **run sync instantly ("hands-on")** via API endpoint.
+4. **Frontend:**
+    - Polls every 30 min.
+    - Requests dashboard PNGs and corresponding predication tables.
+
+***
+
+## 📦 ENHANCED DATABASE TABLES (with SQLAlchemy definitions):
+
+### 1. ROI Forecasts by Channel
+
+```python
+class ML_ROI_Forecast(Base):
+    __tablename__ = "ml_roi_forecast"
+    id = Column(Integer, primary_key=True)
+    channel = Column(String(50), index=True)
+    roi_forecast = Column(Float)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+```
+
+
+### 2. Conversion \& ROI Over Time
+
+```python
+class ML_ROI_TimeSeries(Base):
+    __tablename__ = "ml_roi_timeseries"
+    id = Column(Integer, primary_key=True)
+    date = Column(Date)
+    channel = Column(String(50), index=True)
+    roi_actual = Column(Float)
+    conversion_actual = Column(Float)
+    roi_pred = Column(Float)
+    conversion_pred = Column(Float)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+```
+
+
+### 3. Reach \& CTR Over Time
+
+```python
+class ML_Reach_CTR_TimeSeries(Base):
+    __tablename__ = "ml_reach_ctr_timeseries"
+    id = Column(Integer, primary_key=True)
+    date = Column(Date)
+    channel = Column(String(50), index=True)
+    reach_actual = Column(Integer)
+    ctr_actual = Column(Float)
+    reach_pred = Column(Integer)
+    ctr_pred = Column(Float)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+```
+
+
+### 4. Budget Recommendations by Channel
+
+```python
+class ML_Budget_Rec(Base):
+    __tablename__ = "ml_budget_rec"
+    id = Column(Integer, primary_key=True)
+    channel = Column(String(50), index=True)
+    roi_pred = Column(Float)
+    conversion_pred = Column(Float)
+    acquisition_cost = Column(Float)
+    recommended_budget = Column(Float)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+```
+
+
+***
+
+## 🚦 ENDPOINTS FOR FRONTEND
+
+- `/api/ml-dashboard/roi-forecast` → PNG chart + prediction table (`ml_roi_forecast`)
+- `/api/ml-dashboard/roi-timeseries` → PNG chart + table (`ml_roi_timeseries`)
+- `/api/ml-dashboard/reach-ctr-timeseries` → PNG chart + table (`ml_reach_ctr_timeseries`)
+- `/api/ml-dashboard/budget-recommendation` → PNG chart + table (`ml_budget_rec`)
+
+Each endpoint returns:
+
+- PNG chart (in-memory from Seaborn/Matplotlib)
+- Table: latest prediction rows
+
+***
+
+## 🕒 SCHEDULER \& "HANDS-ON" SYNC API
+
+- **APScheduler**: Runs every 30 min (`ml_sync_service.run_all()`):
+    - Re-runs your ML pipeline, updates 4 tables, and generates latest PNGs.
+- **Manual sync API endpoint**: `/api/sync/run-now`
+    - Runs same `ml_sync_service.run_all()` function instantly (for demo or manual refresh).
+
+***
+
+## 🧠 BACKEND COMPONENTS \& HIGH-LEVEL FLOW
+
+**FastAPI routers example:**
+
+```python
+@app.get("/api/ml-dashboard/roi-forecast")
+def get_roi_forecast(db: Session = Depends(get_db)):
+    # Query ML_ROI_Forecast table for recent data
+    pred = db.query(ML_ROI_Forecast).order_by(ML_ROI_Forecast.created_at.desc()).limit(10).all()
+    # Read PNG (save in folder or in table as binary)
+    with open("/tmp/roi_forecast_by_channel.png", "rb") as f:
+        chart_data = f.read()
+    # Send chart as PNG + predictions as JSON
+    return Response(content=chart_data, media_type="image/png"), [p.as_dict() for p in pred]
+```
+
+Or, for strictly separated endpoints, PNG at `/image`, table at `/data`.
+
+**Sync service example:**
+
+```python
+class ML_Sync_Service:
+    def run_all(self):
+        # 1. Run notebook code (or import functions)
+        # 2. Save latest Seaborn PNGs
+        # 3. Overwrite the four prediction tables with newest rows/results
+        pass
+
+# In scheduler:
+scheduler.add_job(
+    ML_Sync_Service().run_all,
+    'interval',
+    minutes=30,
+    id='ml_dashboard_refresh'
+)
+
+# In manual API:
+@app.post("/api/sync/run-now")
+def sync_now():
+    ML_Sync_Service().run_all()
+    return {"status": "success"}
+```
+
+
+***
+
+## 🖼️ PNG CHART GENERATION STRATEGY
+
+- Your notebook (`ml_presentable.ipynb`) already outputs all needed tables and Seaborn charts as PNG (use `plt.savefig(...)`)
+- Save each dashboard image to temp/static folder (or in DB as bytes if simple)
+- Use FastAPI to stream PNGs to frontend using `Response(content=..., media_type='image/png')`
+- For tables, send as JSON from SQLAlchemy query
+
+***
+
+## 🔁 FRONTEND POLLING REQUIREMENTS
+
+- **Polling every 30 min**: Use `setInterval` in React (or fetch-on-load + refresh button for demo)
+- Multiple endpoints: Each dashboard's PNG \& prediction table fetched via `/api/ml-dashboard/*`
+- Show loading state if fetching PNG
+
+***
+
+## 🛠️  HANDS-ON SETUP: BACKEND REQUIREMENTS
+
+### 0) **Add in `requirements.txt` / `pyproject.toml`:**
+
+- `fastapi`
+- `sqlalchemy`
+- `psycopg2-binary`
+- `pandas`
+- `seaborn`
+- `matplotlib`
+- `apscheduler`
+- `faker` (for fake data/mocking, if needed)
+- `python-dotenv`
+
+
+### 1) **Define 4 ML prediction tables (see above) and run Alembic migration.**
+
+### 2) **ML sync service:**
+
+- At refresh, parse notebook or run your ML prediction code for each dashboard:
+    - Extract tables as pandas DataFrames.
+    - Save/replace predictions in respective DB tables.
+    - Generate PNGs and save to disk/DB.
+
+
+### 3) **APScheduler setup:**
+
+- Every 30 min call the above sync code.
+
+
+### 4) **API endpoints:**
+
+- `/api/ml-dashboard/<dashboard>`: Returns PNG image and JSON table rows for each type.
+
+
+### 5) **Manual sync endpoint**:
+
+- `/api/sync/run-now`: Calls the ML sync service on demand.
+
+***
+
+## 🚀 SHORT CHECKLIST FOR 6 HOURS
+
+- [x] Define 4 ML prediction tables + Alembic migration
+- [x] ML sync service pulls data, predicts, writes to DB, saves PNG charts
+- [x] Endpoints for PNG chart + table per dashboard
+- [x] Scheduler every 30 min
+- [x] Manual sync endpoint for demo
+- [x] Frontend polls endpoints every 30 min and displays chart/table
+
+**This version fits your hackathon MVP and keeps it agentic/minimal, with everything ready for backend and frontend handoff.**
+
+Want ready Python code for the ML sync service or FastAPI endpoint? Just specify the dashboard, and I’ll generate it!
+<span style="display:none">[^5_1]</span>
+
+<div align="center">⁂</div>
+
+[^5_1]: Screenshot_22-11-2025_25043_github.com.jpg
+
+
+---
+
+# can you please give to me the Architecture Diagrams using plantuml! to explain overall system!
+
+```plantuml
+@startuml
+title DEMETRA SYSTEMS - AI Advertising Analytics MVP Architecture
+
+'===== Clients (Frontend) =====
+actor "Marketing Team" as User
+rectangle "Frontend (React)" as Frontend {
+  [Main Dashboard]
+  [Charts & Tables]
+  [PNG Dashboard Viewer]
+  [Polling Service]
+}
+
+User --> Frontend : Uses web dashboard
+
+'===== API Layer =====
+rectangle "Backend (FastAPI)" as Backend {
+  [Campaign API]
+  [ML Dashboard API (/api/ml-dashboard/*)]
+  [Manual Sync API]
+}
+
+Frontend --> [ML Dashboard API (/api/ml-dashboard/*)] : GET prediction tables & PNG charts
+Frontend --> [Manual Sync API] : POST request to manual sync
+
+'===== Scheduler =====
+component "APScheduler" as Scheduler
+
+Scheduler ..> Backend : Triggers ML sync every 30 min
+
+'===== ML Sync Service =====
+rectangle "ML Sync Service" as MLSync {
+  [Run ML notebook/model]
+  [Generate/Save Seaborn PNGs]
+  [Write prediction tables to DB]
+}
+
+Scheduler --> MLSync : Calls run_all()
+[Manual Sync API] --> MLSync : Calls run_all()
+
+'===== Database =====
+database "PostgreSQL" as DB {
+  [campaigns]
+  [ml_roi_forecast]
+  [ml_roi_timeseries]
+  [ml_reach_ctr_timeseries]
+  [ml_budget_rec]
+}
+
+Backend --> DB : Read/write tables (\nCRUD, prediction output)
+MLSync --> DB : Writes new prediction tables
+
+'===== ML Model Layer =====
+rectangle "ML Model/Notebook (ml_presentable.ipynb)" as MLModel {
+  [ROI Model]
+  [Budget Recommendation Code]
+  [Seaborn Chart Generation]
+  [Prediction Table Generation]
+}
+
+MLSync --> MLModel : Runs inference, chart, table code
+
+'===== File Storage (optional) =====
+folder "PNG Chart Storage" as PNGStore
+
+MLSync --> PNGStore : Save PNG chart files
+Backend --> PNGStore : Streams PNG to frontend
+
+@enduml
+```
+
+
+***
+
+**How to read:**
+
+- **Frontend (React)** continuously polls the backend for updated ML dashboards (PNG charts + table data).
+- **Backend (FastAPI)** exposes APIs for prediction tables, serving PNG dashboards, and lets you trigger a manual sync.
+- **Scheduler (APScheduler)** triggers `ML Sync Service` every 30 min to run ML pipeline: model inference, prediction table write, Seaborn chart generation.
+- **ML Sync Service** runs your notebook/model code, writes tables to Postgres, and saves PNGs.
+- **Database (Postgres)** stores raw campaign data and ML prediction outputs (4+ tables, one for each dashboard/prediction).
+- **ML Model Layer** is called (imported/runnable functions, or notebook parsing)—outputs tables/charts into system.
+- **Optional PNG file storage**: PNG chart images saved by the sync, streamed to frontend via API.
+
+***
+
+**Copy-paste to [PlantUML online editor](https://www.plantuml.com/plantuml/) or IntelliJ/VSCode PlantUML plugin. Would you like a component breakdown for each API?**
+
+---
+
+# please can you give other type of diagrams,
+
+and also give the ERD like diagram for all tables that we have in DB
+
+Here are two types of diagrams in PlantUML:
+
+***
+
+## 1. **System Component Diagram (PlantUML)**
+
+```plantuml
+@startuml
+title DEMETRA SYSTEMS - Component Overview
+
+package "Frontend" {
+  [React Dashboard]
+  [Polling Service]
+}
+
+package "Backend (FastAPI)" {
+  [Campaigns API]
+  [ML Dashboard API]
+  [Manual Sync API]
+  [Scheduler (APScheduler)]
+  [ML Sync Service]
+}
+
+package "ML Layer" {
+  [ML Model/Notebook\n(ml_presentable.ipynb)]
+}
+
+database "PostgreSQL DB" {
+  [campaigns]
+  [ml_roi_forecast]
+  [ml_roi_timeseries]
+  [ml_reach_ctr_timeseries]
+  [ml_budget_rec]
+}
+
+folder "PNG Chart Folder" as PNGStore
+
+[React Dashboard] --> [ML Dashboard API] : GET charts/tables
+[Polling Service] --> [ML Dashboard API] : Periodic polling
+[React Dashboard] --> [Manual Sync API] : Run sync
+
+[Scheduler (APScheduler)] --> [ML Sync Service] : every 30 min
+[Manual Sync API] --> [ML Sync Service] : on request
+
+[ML Sync Service] --> [ML Model/Notebook\n(ml_presentable.ipynb)] : run inference
+[ML Sync Service] --> [PostgreSQL DB] : write predictions/tables
+[ML Sync Service] --> PNGStore : save PNG charts
+
+[ML Dashboard API] --> [PostgreSQL DB]
+[ML Dashboard API] --> PNGStore
+[Campaigns API] --> [PostgreSQL DB]
+@enduml
+```
+
+
+***
+
+## 2. **ERD (Entity-Relationship Diagram) of Database**
+
+```plantuml
+@startuml
+title DEMETRA SYSTEMS - DB ERD
+
+entity "campaigns" as campaigns {
+  *id : int
+  campaign_id : varchar
+  channel : varchar
+  conversion_rate : float
+  cost : float
+  roi : float
+  clicks : int
+  impressions : int
+  engagement : int
+  date : date
+  created_at : datetime
+}
+
+entity "ml_roi_forecast" {
+  *id : int
+  channel : varchar
+  roi_forecast : float
+  created_at : datetime
+}
+
+entity "ml_roi_timeseries" {
+  *id : int
+  date : date
+  channel : varchar
+  roi_actual : float
+  conversion_actual : float
+  roi_pred : float
+  conversion_pred : float
+  created_at : datetime
+}
+
+entity "ml_reach_ctr_timeseries" {
+  *id : int
+  date : date
+  channel : varchar
+  reach_actual : int
+  ctr_actual : float
+  reach_pred : int
+  ctr_pred : float
+  created_at : datetime
+}
+
+entity "ml_budget_rec" {
+  *id : int
+  channel : varchar
+  roi_pred : float
+  conversion_pred : float
+  acquisition_cost : float
+  recommended_budget : float
+  created_at : datetime
+}
+
+campaigns ||..|| ml_roi_timeseries : uses channel/date
+campaigns ||..|| ml_reach_ctr_timeseries : uses channel/date
+
+ml_roi_forecast ||..|| campaigns : channel
+
+ml_budget_rec ||..|| campaigns : channel
+
+@enduml
+```
+
+
+***
+
+**Instructions:**
+
+- Paste these diagrams into [plantuml.com](https://www.plantuml.com/plantuml) or your IDE’s PlantUML viewer for rendering.
+- You can further fine-tune relationships or add more attributes as needed.
+
+Let me know if you need sequence diagrams or API callflows!
+
